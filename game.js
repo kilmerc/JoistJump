@@ -6,6 +6,7 @@ const COLORS = {
   obstacleCA: [30, 120, 220],
   joist: [180, 180, 180],
   joistHighlight: [220, 220, 220],
+  joistGold: [255, 215, 0],
   ground: [80, 65, 45],
   groundStroke: [60, 45, 35],
   sky: [135, 206, 250],
@@ -418,7 +419,7 @@ function drawJoists() {
 }
 
 // --- Particle System ---
-function createCollectParticles(x, y) {
+function createCollectParticles(x, y, color) {
   for (let i = 0; i < COLLECT_PARTICLES; i++) {
     particles.push({
       x: x,
@@ -426,7 +427,7 @@ function createCollectParticles(x, y) {
       vx: random(-3, 3),
       vy: random(-5, 0),
       size: random(3, 8),
-      color: [...COLORS.joistHighlight, 255], // Copy color array and add alpha
+      color: [...color, 255], // Copy color array and add alpha
       life: PARTICLE_LIFETIME
     });
   }
@@ -475,6 +476,12 @@ function spawnElements() {
   if (frameCount % joistSpawnRate === 0 && random() > 0.3) {
     joists.push(createJoist());
   }
+  
+  // Spawn golden joists (much less frequently)
+  let goldenJoistSpawnRate = joistSpawnRate * 5; // 5 times less frequent
+  if (frameCount % goldenJoistSpawnRate === 0 && random() > 0.6) {
+    joists.push(createJoist(true)); // Force golden joist
+  }
 }
 
 // --- Obstacle Object ---
@@ -485,20 +492,38 @@ function createObstacle() {
   let approxWidth = type === 'NM' ? size * 1.1 : size * 1.0;
   let obstacleImg = type === 'NM' ? newMillImg : canamImg;
   
+  // Determine position type: 0 = ground (jump over), 1 = flying (go under)
+  let positionType = random() > 0.3 ? 0 : 1; // 70% ground, 30% flying
+  
+  let yPos;
+  if (positionType === 0) {
+    // Ground obstacle (need to jump over)
+    yPos = groundY - size / 2;
+  } else {
+    // Flying obstacle (need to go under)
+    yPos = groundY - size * 1.8; // Positioned higher so player can go under
+  }
+  
   return {
     x: width + size,
-    y: groundY - size / 2,
+    y: yPos,
     type: type,
     image: obstacleImg,
     color: obsColor,
     size: size,
     width: approxWidth,
+    positionType: positionType,
     rotation: 0,
     
     update: function() {
       this.x -= gameSpeed;
       // Slight wobble
       this.rotation = sin(frameCount * 0.05 + this.x * 0.01) * 0.1;
+      
+      // Add a slight hover effect for flying obstacles
+      if (this.positionType === 1) {
+        this.y += sin(frameCount * 0.1) * 0.5;
+      }
     },
     
     draw: function() {
@@ -506,9 +531,10 @@ function createObstacle() {
       translate(this.x, this.y);
       rotate(this.rotation);
       
-      // Draw shadow
-      fill(0, 0, 0, 40);
-      ellipse(0, 10, this.width, 10);
+      // Draw shadow (fainter for flying obstacles)
+      let shadowAlpha = this.positionType === 0 ? 40 : 20;
+      fill(0, 0, 0, shadowAlpha);
+      ellipse(0, groundY - this.y + 10, this.width, 10);
       
       // Draw obstacle image
       imageMode(CENTER);
@@ -536,18 +562,22 @@ function createObstacle() {
 }
 
 // --- Joist Object ---
-function createJoist() {
+function createJoist(forceGolden = false) {
   let w = JOIST_WIDTH;
   let h = JOIST_HEIGHT;
   // Spawn slightly above ground or higher up
   let spawnY = random() > 0.6 ? groundY - h * 1.5 : groundY - h * 3.5;
   spawnY = max(spawnY, h * 2); // Don't spawn too high off screen top
   
+  // Determine if this joist is golden (rare)
+  let isGolden = forceGolden || random() < 0.15;
+  
   return {
     x: width + w,
     y: spawnY,
     width: w,
     height: h,
+    isGolden: isGolden,
     rotation: 0,
     hover: 0,
     
@@ -568,9 +598,9 @@ function createJoist() {
       fill(0, 0, 0, 30);
       ellipse(0, 15, this.width * 0.8, 10);
       
-      // Draw joist
-      fill(COLORS.joist);
-      stroke(80);
+      // Draw joist with gold or normal color
+      fill(this.isGolden ? COLORS.joistGold : COLORS.joist);
+      stroke(this.isGolden ? COLORS.joistGold[0] - 50 : 80);
       strokeWeight(2);
       
       let topY = -this.height / 2;
@@ -597,6 +627,13 @@ function createJoist() {
       // Add vertical end posts
       line(leftX + 1, topY + 5, leftX + 1, bottomY - 5);
       line(rightX - 1, topY + 5, rightX - 1, bottomY - 5);
+      
+      // Add shine effect for golden joists
+      if (this.isGolden) {
+        noStroke();
+        fill(255, 255, 220, 150);
+        ellipse(0, 0, this.width * 0.6, this.height * 0.6);
+      }
       
       noStroke();
       pop();
@@ -662,10 +699,16 @@ function checkCollisions() {
   for (let i = joists.length - 1; i >= 0; i--) {
     let joistBounds = joists[i].getBounds();
     if (rectOverlap(playerBounds, joistBounds)) {
-      score++;
-      
-      // Create collection particles
-      createCollectParticles(joists[i].x, joists[i].y);
+      // Check if it's a golden joist (5 points) or regular joist (1 point)
+      if (joists[i].isGolden) {
+        score += 5;
+        // Create gold collection particles
+        createCollectParticles(joists[i].x, joists[i].y, COLORS.joistGold);
+      } else {
+        score += 1;
+        // Create regular collection particles
+        createCollectParticles(joists[i].x, joists[i].y, COLORS.joistHighlight);
+      }
       
       // Remove collected joist
       joists.splice(i, 1);
