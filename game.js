@@ -50,15 +50,24 @@ let gameSpeed = INITIAL_GAME_SPEED;
 let groundY;
 let lastJumpTime = 0;
 
+// --- Image Assets ---
+let nucorImg, newMillImg, canamImg;
+
 // --- Sound Effects (commented out, add if desired) ---
 // let jumpSound, collectSound, crashSound;
 
 // --- Preload assets ---
-// function preload() {
-//   jumpSound = loadSound('jump.mp3');
-//   collectSound = loadSound('collect.mp3');
-//   crashSound = loadSound('crash.mp3');
-// }
+function preload() {
+  // Load images
+  nucorImg = loadImage('assets/nucor.png');
+  newMillImg = loadImage('assets/NewMill.png');
+  canamImg = loadImage('assets/Canam.png');
+  
+  // Load sounds (commented out, add if desired)
+  // jumpSound = loadSound('jump.mp3');
+  // collectSound = loadSound('collect.mp3');
+  // crashSound = loadSound('crash.mp3');
+}
 
 // --- p5.js Setup Function ---
 function setup() {
@@ -333,16 +342,17 @@ function createPlayer() {
         ellipse(0, groundY - this.y + 10, this.size * 0.5, this.size * 0.2);
       }
       
-      // Draw Nucor N
-      fill(COLORS.nucorGreen);
-      textSize(this.size);
-      text('N', 0, 0);
+      // Draw Nucor logo
+      imageMode(CENTER);
+      let imgSize = this.size * 1.1; // Adjust based on the logo proportions
+      image(nucorImg, 0, 0, imgSize, imgSize);
       
       // Visual enhancement: add glow when jumping
       if (!this.onGround) {
-        fill(COLORS.nucorLightGreen[0], COLORS.nucorLightGreen[1], COLORS.nucorLightGreen[2], 100);
-        textSize(this.size * 1.1);
-        text('N', 0, 0);
+        push();
+        tint(COLORS.nucorLightGreen[0], COLORS.nucorLightGreen[1], COLORS.nucorLightGreen[2], 100);
+        image(nucorImg, 0, 0, imgSize * 1.1, imgSize * 1.1);
+        pop();
       }
       
       pop();
@@ -473,11 +483,13 @@ function createObstacle() {
   let obsColor = type === 'NM' ? COLORS.obstacleNM : COLORS.obstacleCA;
   let size = OBSTACLE_SIZE;
   let approxWidth = type === 'NM' ? size * 1.1 : size * 1.0;
+  let obstacleImg = type === 'NM' ? newMillImg : canamImg;
   
   return {
     x: width + size,
     y: groundY - size / 2,
-    text: type,
+    type: type,
+    image: obstacleImg,
     color: obsColor,
     size: size,
     width: approxWidth,
@@ -498,10 +510,11 @@ function createObstacle() {
       fill(0, 0, 0, 40);
       ellipse(0, 10, this.width, 10);
       
-      // Draw obstacle text
-      fill(this.color);
-      textSize(this.size);
-      text(this.text, 0, 0);
+      // Draw obstacle image
+      imageMode(CENTER);
+      tint(this.color); // Apply color tint to match original theme
+      image(this.image, 0, 0, this.size * 1.2, this.size);
+      noTint(); // Reset tint
       
       pop();
     },
@@ -713,8 +726,8 @@ function drawStartScreen() {
   text("NUCOR RUNNER", width / 2, height / 3);
   
   // Nucor logo
-  textSize(120);
-  text("N", width / 2, height / 2);
+  imageMode(CENTER);
+  image(nucorImg, width / 2, height / 2, 120, 120);
   
   // Instructions
   fill(255);
