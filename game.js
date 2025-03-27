@@ -69,6 +69,22 @@ const VERTICAL_MOVE_SPEED = 0.04; // Base speed of vertical oscillation (radians
 const COLLECT_PARTICLES = 15; // Number of particles spawned when collecting a joist
 const PARTICLE_LIFETIME = 40; // Duration (frames) particles remain active
 
+/** Powerup configuration */
+const POWERUP_SIZE = 40;
+const POWERUP_SPAWN_CHANCE = 0.15; // 15% chance when powerup spawn timer triggers
+const BASE_POWERUP_SPAWN_RATE = 300; // Initial frames between powerup spawn chances
+const MIN_POWERUP_SPAWN_RATE = 100; // Minimum spawn rate at maximum difficulty
+const POWERUP_DURATION = 600; // 10 seconds at 60fps
+
+// Spring powerup increases jump height
+const MEGA_JUMP_MULTIPLIER = 2.0; // Jump twice as high
+
+// Powerup types enum
+const POWERUP_TYPES = {
+  MEGA_JUMP: "mega_jump",
+  INVINCIBILITY: "invincibility",
+};
+
 // =============================================================================
 // --- Game State Variables ---
 // =============================================================================
@@ -92,6 +108,10 @@ let groundY; // Calculated Y coordinate of the ground line
 let lastJumpTime = 0; // Timestamp of the last jump (used for potential UI effects)
 let isJumping = false; // Flag indicating if the jump input is currently being held down
 
+let powerups = []; // Array storing active powerup objects
+let activePowerups = {}; // Object tracking active powerup effects and their timers
+let powerupImages = {}; // Object storing loaded powerup images
+
 // =============================================================================
 // --- Image Assets ---
 // =============================================================================
@@ -111,7 +131,10 @@ function preload() {
   nucorImg = loadImage("assets/nucor.png");
   newMillImg = loadImage("assets/NewMill.png");
   canamImg = loadImage("assets/Canam.png");
-  // Sound effects removed as requested
+
+  // Load powerup images
+  powerupImages[POWERUP_TYPES.MEGA_JUMP] = loadImage("assets/spring.png"); // Add this image
+  powerupImages[POWERUP_TYPES.INVINCIBILITY] = loadImage("assets/star.png"); // Add this image
 }
 
 /**
@@ -378,7 +401,9 @@ function updateGame() {
   player.update(); // Apply physics and handle state for the player
   handleObstacles(); // Update and remove off-screen obstacles
   handleJoists(); // Update and remove off-screen joists
+  handlePowerups(); // Update and remove off-screen powerups
   updateParticles(); // Update active particles and return dead ones to the pool
+  updateActivePowerups(); // Update active powerup timers
 
   // Spawn new elements based on difficulty
   spawnElements();
@@ -406,6 +431,7 @@ function updateGame() {
 function drawGameElements() {
   // Draw order matters for layering
   drawJoists(); // Draw joists first (behind player)
+  drawPowerups(); // Draw powerups (behind player)
   player.draw(); // Draw the player
   drawObstacles(); // Draw obstacles (can appear in front or behind depending on spawn)
   drawParticles(); // Draw particles (usually on top)
@@ -427,6 +453,8 @@ function createPlayer() {
     size: PLAYER_SIZE, // Player's visual size
     onGround: true, // Flag if player is currently touching the ground
     jumpAnimation: 0, // Counter for jump rotation animation
+    jumpMultiplier: 1.0, // Modified by mega jump powerup
+    isInvincible: false, // Modified by invincibility powerup
 
     /** Updates player physics (gravity, velocity, position) and state. */
     update: function () {
@@ -454,24 +482,21 @@ function createPlayer() {
 
     /** Draws the player character (Nucor logo) with animations and effects. */
     draw: function () {
-      push(); // Isolate drawing transformations
-
-      // Apply transformations (translation, rotation)
+      push();
       translate(this.x, this.y);
+
       if (!this.onGround) {
-        // Apply slight rotation during jump based on sine wave
+        // Apply rotation during jump
         let angle = sin(this.jumpAnimation) * 0.2;
         rotate(angle);
 
-        // Draw a dynamic shadow below the player when airborne
-        // Shadow gets fainter and smaller the higher the player is
+        // Draw shadow
         let shadowDistFactor = constrain(
           map(this.y, groundY - this.size / 2, height * 0.2, 1, 0.3),
           0.3,
           1
         );
-        fill(0, 0, 0, 50 * shadowDistFactor); // Fade alpha
-        // Shadow position is relative to ground; ellipse size scales
+        fill(0, 0, 0, 50 * shadowDistFactor);
         ellipse(
           0,
           groundY - this.y + 10,
@@ -479,40 +504,61 @@ function createPlayer() {
           this.size * 0.2 * shadowDistFactor
         );
       } else {
-        // Draw a standard shadow when on the ground
+        // Standard ground shadow
         fill(0, 0, 0, 50);
         ellipse(0, groundY - this.y + 10, this.size * 0.5, this.size * 0.2);
       }
 
-      // Draw the main player image (Nucor logo)
-      imageMode(CENTER); // Draw image centered at the translated origin
-      let imgSize = this.size * 1.1; // Scale image slightly larger than collision size
-      image(nucorImg, 0, 0, imgSize, imgSize);
+      // Draw the player with invincibility effect if active
+      imageMode(CENTER);
+      let imgSize = this.size * 1.1;
 
-      // Add a visual glow effect when jumping (tinting a larger image)
-      if (!this.onGround) {
-        push(); // Isolate tint effect
-        tint(
-          COLORS.nucorLightGreen[0],
-          COLORS.nucorLightGreen[1],
-          COLORS.nucorLightGreen[2],
-          100
-        ); // Apply light green tint
-        image(nucorImg, 0, 0, imgSize * 1.1, imgSize * 1.1); // Draw slightly larger tinted image behind
-        pop(); // Restore previous drawing settings (remove tint)
+      if (this.isInvincible) {
+        // Invincibility effect - pulsing rainbow glow
+        let pulseRate = frameCount * 0.1;
+        let r = 128 + 127 * sin(pulseRate);
+        let g = 128 + 127 * sin(pulseRate + TWO_PI / 3);
+        let b = 128 + 127 * sin(pulseRate + (2 * TWO_PI) / 3);
+
+        // Draw glow
+        push();
+        tint(r, g, b, 150);
+        image(nucorImg, 0, 0, imgSize * 1.2, imgSize * 1.2);
+        pop();
+
+        // Draw player with slight tint
+        push();
+        tint(255, 255, 200, 255);
+        image(nucorImg, 0, 0, imgSize, imgSize);
+        pop();
+      } else {
+        // Normal player drawing
+        image(nucorImg, 0, 0, imgSize, imgSize);
+
+        // Add jump glow effect
+        if (!this.onGround) {
+          push();
+          tint(
+            COLORS.nucorLightGreen[0],
+            COLORS.nucorLightGreen[1],
+            COLORS.nucorLightGreen[2],
+            100
+          );
+          image(nucorImg, 0, 0, imgSize * 1.1, imgSize * 1.1);
+          pop();
+        }
       }
 
-      pop(); // Restore original drawing state
+      pop();
     },
 
     /** Initiates the player jump if on the ground. */
     jump: function () {
       if (this.onGround) {
-        this.vy = JUMP_FORCE; // Apply upward force
-        this.onGround = false; // Player is no longer on the ground
-        isJumping = true; // Set flag indicating jump input is active
-        lastJumpTime = millis(); // Record jump time (for potential UI effects)
-        // Sound effect removed
+        this.vy = JUMP_FORCE * this.jumpMultiplier; // Apply jump force with multiplier
+        this.onGround = false;
+        isJumping = true;
+        lastJumpTime = millis();
       }
     },
 
@@ -873,6 +919,163 @@ function createJoist(forceGolden = false) {
   };
 }
 
+/**
+ * Creates a new powerup object
+ * @param {string} type - The powerup type from POWERUP_TYPES
+ * @returns {object} The powerup object
+ */
+function createPowerup(type) {
+  let size = POWERUP_SIZE;
+
+  // Determine spawn height
+  let spawnY = groundY - size * 2 - random(size * 2);
+  spawnY = max(spawnY, size * 2); // Keep within screen bounds
+
+  return {
+    x: width + size,
+    y: spawnY,
+    baseY: spawnY,
+    type: type,
+    size: size,
+    rotation: 0,
+    hover: 0,
+    animOffset: random(TWO_PI),
+
+    update: function () {
+      // Move horizontally
+      this.x -= gameSpeed;
+
+      // Hover animation
+      let hoverSpeed = 0.1 + (gameSpeed - INITIAL_GAME_SPEED) * 0.005;
+      this.hover = sin(frameCount * hoverSpeed + this.animOffset) * 4;
+
+      // Rotation animation (spin faster for star)
+      let rotSpeed =
+        this.type === POWERUP_TYPES.INVINCIBILITY
+          ? 0.1 + (gameSpeed - INITIAL_GAME_SPEED) * 0.01
+          : 0.03 + (gameSpeed - INITIAL_GAME_SPEED) * 0.002;
+      this.rotation += rotSpeed;
+
+      // Update actual Y position
+      this.y = this.baseY + this.hover;
+    },
+
+    draw: function () {
+      push();
+      translate(this.x, this.y);
+      rotate(this.rotation);
+
+      // Draw shadow
+      fill(0, 0, 0, 30);
+      ellipse(0, 15 - this.hover, this.size * 0.8, 10);
+
+      // Draw powerup image
+      imageMode(CENTER);
+      image(powerupImages[this.type], 0, 0, this.size, this.size);
+
+      // Draw glow effect
+      if (this.type === POWERUP_TYPES.INVINCIBILITY) {
+        // Yellow glow for star
+        noStroke();
+        fill(255, 255, 100, 50 + 20 * sin(frameCount * 0.1));
+        ellipse(0, 0, this.size * 1.3, this.size * 1.3);
+      } else {
+        // Blue glow for spring
+        noStroke();
+        fill(100, 150, 255, 40 + 15 * sin(frameCount * 0.05));
+        ellipse(0, 0, this.size * 1.2, this.size * 1.2);
+      }
+
+      pop();
+    },
+
+    isOffScreen: function () {
+      return this.x < -this.size;
+    },
+
+    getBounds: function () {
+      return {
+        left: this.x - this.size / 2,
+        right: this.x + this.size / 2,
+        top: this.y - this.size / 2,
+        bottom: this.y + this.size / 2,
+      };
+    },
+  };
+}
+
+/**
+ * Updates all active powerups and removes those off-screen
+ */
+function handlePowerups() {
+  // Update existing powerups
+  for (let i = powerups.length - 1; i >= 0; i--) {
+    powerups[i].update();
+
+    // Remove if off-screen
+    if (powerups[i].isOffScreen()) {
+      powerups[i] = powerups[powerups.length - 1];
+      powerups.pop();
+    }
+  }
+}
+
+/**
+ * Draws all active powerups
+ */
+function drawPowerups() {
+  for (let powerup of powerups) {
+    powerup.draw();
+  }
+}
+
+/**
+ * Updates active powerup timers and effects
+ */
+function updateActivePowerups() {
+  // Check mega jump powerup
+  if (activePowerups[POWERUP_TYPES.MEGA_JUMP]) {
+    activePowerups[POWERUP_TYPES.MEGA_JUMP]--;
+
+    // Expire if timer reaches zero
+    if (activePowerups[POWERUP_TYPES.MEGA_JUMP] <= 0) {
+      delete activePowerups[POWERUP_TYPES.MEGA_JUMP];
+      player.jumpMultiplier = 1.0; // Reset jump height
+    }
+  }
+
+  // Check invincibility powerup
+  if (activePowerups[POWERUP_TYPES.INVINCIBILITY]) {
+    activePowerups[POWERUP_TYPES.INVINCIBILITY]--;
+
+    // Expire if timer reaches zero
+    if (activePowerups[POWERUP_TYPES.INVINCIBILITY] <= 0) {
+      delete activePowerups[POWERUP_TYPES.INVINCIBILITY];
+      player.isInvincible = false; // Turn off invincibility
+    }
+  }
+}
+
+/**
+ * Activates a powerup effect
+ * @param {string} type - The powerup type
+ */
+function activatePowerup(type) {
+  // Set timer
+  activePowerups[type] = POWERUP_DURATION;
+
+  // Apply effect
+  if (type === POWERUP_TYPES.MEGA_JUMP) {
+    player.jumpMultiplier = MEGA_JUMP_MULTIPLIER;
+    // Create blue particle burst effect
+    createCollectParticles(player.x, player.y, [100, 150, 255]);
+  } else if (type === POWERUP_TYPES.INVINCIBILITY) {
+    player.isInvincible = true;
+    // Create yellow/gold particle burst effect
+    createCollectParticles(player.x, player.y, [255, 220, 50]);
+  }
+}
+
 // =============================================================================
 // --- Particle System ---
 // =============================================================================
@@ -996,6 +1199,18 @@ function spawnElements() {
     // Additional random chance
     joists.push(createJoist(true)); // Force creation of a golden joist
   }
+
+  // --- Powerup Spawning ---
+  let powerupSpawnRate = floor(
+    max(MIN_POWERUP_SPAWN_RATE, BASE_POWERUP_SPAWN_RATE - rateReduction)
+  );
+
+  if (frameCount % powerupSpawnRate === 0 && random() < POWERUP_SPAWN_CHANCE) {
+    // Decide which powerup to spawn
+    let type =
+      random() > 0.5 ? POWERUP_TYPES.MEGA_JUMP : POWERUP_TYPES.INVINCIBILITY;
+    powerups.push(createPowerup(type));
+  }
 }
 
 /**
@@ -1011,7 +1226,7 @@ function checkCollisions() {
     // No need for backward loop if not removing here
     let obsBounds = obs.getBounds(); // Get obstacle's collision box
     // Check for overlap between player and obstacle bounds
-    if (rectOverlap(playerBounds, obsBounds)) {
+    if (rectOverlap(playerBounds, obsBounds) && !player.isInvincible) {
       gameOver = true; // Set game over state
 
       // --- Create Collision Particle Effect ---
@@ -1047,6 +1262,21 @@ function checkCollisions() {
       }
 
       return; // Exit collision check early since game is over
+    }
+  }
+
+  // --- Player vs Powerups ---
+  for (let i = powerups.length - 1; i >= 0; i--) {
+    let powerup = powerups[i];
+    let powerupBounds = powerup.getBounds();
+
+    if (rectOverlap(playerBounds, powerupBounds)) {
+      // Activate the powerup
+      activatePowerup(powerup.type);
+
+      // Remove collected powerup
+      powerups[i] = powerups[powerups.length - 1];
+      powerups.pop();
     }
   }
 
@@ -1120,7 +1350,47 @@ function drawUI() {
   textAlign(CENTER, CENTER);
   text(`Distance: ${floor(distance)}m`, width / 2, 25);
 
-  // Jump indicator effect was removed.
+  // Display active powerup indicators
+  let iconSize = 30;
+  let iconSpacing = 10;
+  let startX = 20;
+  let startY = 80;
+
+  // Draw powerup status icons if active
+  if (activePowerups[POWERUP_TYPES.MEGA_JUMP]) {
+    // Draw mega jump icon
+    image(
+      powerupImages[POWERUP_TYPES.MEGA_JUMP],
+      startX,
+      startY,
+      iconSize,
+      iconSize
+    );
+
+    // Draw timer bar
+    let timeLeft = activePowerups[POWERUP_TYPES.MEGA_JUMP] / POWERUP_DURATION;
+    fill(100, 150, 255);
+    rect(startX + iconSize + 5, startY, 50 * timeLeft, 10);
+
+    startY += iconSize + iconSpacing;
+  }
+
+  if (activePowerups[POWERUP_TYPES.INVINCIBILITY]) {
+    // Draw invincibility icon
+    image(
+      powerupImages[POWERUP_TYPES.INVINCIBILITY],
+      startX,
+      startY,
+      iconSize,
+      iconSize
+    );
+
+    // Draw timer bar
+    let timeLeft =
+      activePowerups[POWERUP_TYPES.INVINCIBILITY] / POWERUP_DURATION;
+    fill(255, 220, 50);
+    rect(startX + iconSize + 5, startY, 50 * timeLeft, 10);
+  }
 }
 
 /**
@@ -1287,14 +1557,22 @@ function resetGame() {
   obstacles = [];
   joists = [];
   activeParticles = []; // Clear active particles (particlePool retains inactive ones)
+  powerups = []; // Clear active powerups
+  activePowerups = {}; // Clear active powerup effects
 
-  // Recreate the player object
+  // ---- MOVED PLAYER CREATION UP ----
+  // Recreate the player object FIRST
   player = createPlayer();
+
+  // ---- MOVED PLAYER PROPERTY RESETS DOWN ----
+  // Now that 'player' exists, reset its properties
+  player.jumpMultiplier = 1.0;
+  player.isInvincible = false;
 
   // Reset game state flags (ONLY game over, not gameStarted)
   gameOver = false;
-  // gameStarted = true; // <<< REMOVE THIS LINE >>>
-  isJumping = false;  // Ensure jump state is reset
+  // gameStarted should remain false until user input
+  isJumping = false; // Ensure jump state is reset
 
   // Reset p5's frameCount for consistent spawning at the beginning of a run
   frameCount = 0;
