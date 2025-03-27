@@ -15,21 +15,21 @@
 
 /** Color palette definition for various game elements. */
 const COLORS = {
-  nucorGreen: [0, 125, 65],        // Player primary color
+  nucorGreen: [0, 125, 65], // Player primary color
   nucorLightGreen: [40, 180, 100], // Player jump highlight
-  obstacleNM: [255, 180, 0],       // NewMill obstacle color tint
-  obstacleCA: [30, 120, 220],      // Canam obstacle color tint
-  joist: [180, 180, 180],          // Regular joist color
+  obstacleNM: [255, 180, 0], // NewMill obstacle color tint
+  obstacleCA: [30, 120, 220], // Canam obstacle color tint
+  joist: [180, 180, 180], // Regular joist color
   joistHighlight: [220, 220, 220], // Particle color for regular joist collect
-  joistGold: [255, 215, 0],        // Golden joist color & particles
-  ground: [80, 65, 45],            // Ground fill color
-  groundStroke: [60, 45, 35],      // Ground line color
-  sky: [135, 206, 250],            // Sky background color
-  clouds: [255, 255, 255, 200],    // Cloud color (with alpha)
-  mountains: [110, 90, 70],        // Mountain color
-  text: [20, 20, 20],              // General text color (not used much currently)
-  uiBackground: [0, 0, 0, 180],    // Semi-transparent UI panel background
-  uiText: [255, 255, 255]          // Text color for UI elements
+  joistGold: [255, 215, 0], // Golden joist color & particles
+  ground: [80, 65, 45], // Ground fill color
+  groundStroke: [60, 45, 35], // Ground line color
+  sky: [135, 206, 250], // Sky background color
+  clouds: [255, 255, 255, 200], // Cloud color (with alpha)
+  mountains: [110, 90, 70], // Mountain color
+  text: [20, 20, 20], // General text color (not used much currently)
+  uiBackground: [0, 0, 0, 180], // Semi-transparent UI panel background
+  uiText: [255, 255, 255], // Text color for UI elements
 };
 
 /** Dimensions for core game entities. */
@@ -39,31 +39,31 @@ const JOIST_WIDTH = 70;
 const JOIST_HEIGHT = 35;
 
 /** Physics and movement constants. */
-const GRAVITY = 0.6;              // Downward acceleration applied to the player
-const JUMP_FORCE = -13;           // Initial upward velocity on jump
-const VARIABLE_JUMP_DAMPING = 0.5;// Multiplier to reduce upward velocity when jump is released early
-const GROUND_OFFSET = 0.8;        // Vertical position of the ground line (80% down the screen)
-const INITIAL_GAME_SPEED = 5;     // Starting speed of the game scrolling
+const GRAVITY = 0.6; // Downward acceleration applied to the player
+const JUMP_FORCE = -13; // Initial upward velocity on jump
+const VARIABLE_JUMP_DAMPING = 0.5; // Multiplier to reduce upward velocity when jump is released early
+const GROUND_OFFSET = 0.8; // Vertical position of the ground line (80% down the screen)
+const INITIAL_GAME_SPEED = 5; // Starting speed of the game scrolling
 
 /** Logarithmic difficulty scaling parameters. */
-const SPEED_LOG_BASE = 3.0;       // Controls the steepness of the speed increase curve
-const SPEED_LOG_SCALE = 0.015;    // Controls how quickly distance affects the speed increase
-const SPAWN_RATE_LOG_BASE = 20;   // Controls the steepness of spawn rate decrease
-const SPAWN_RATE_LOG_SCALE = 0.012;// Controls how quickly distance affects spawn rate decrease
+const SPEED_LOG_BASE = 3.0; // Controls the steepness of the speed increase curve
+const SPEED_LOG_SCALE = 0.015; // Controls how quickly distance affects the speed increase
+const SPAWN_RATE_LOG_BASE = 20; // Controls the steepness of spawn rate decrease
+const SPAWN_RATE_LOG_SCALE = 0.012; // Controls how quickly distance affects spawn rate decrease
 
 /** Minimum spawn rates (in frames) define maximum difficulty. */
 const MIN_OBSTACLE_SPAWN_RATE = 40; // Fastest possible time between obstacle spawns
-const MIN_JOIST_SPAWN_RATE = 60;    // Fastest possible time between joist spawns
+const MIN_JOIST_SPAWN_RATE = 60; // Fastest possible time between joist spawns
 
 /** Base spawn rates (in frames) define starting difficulty. */
 const BASE_OBSTACLE_SPAWN_RATE = 120; // Initial time between obstacle spawns
-const BASE_JOIST_SPAWN_RATE = 160;  // Initial time between joist spawns
+const BASE_JOIST_SPAWN_RATE = 160; // Initial time between joist spawns
 
 /** Parameters for vertically moving obstacles feature. */
 const VERTICAL_MOVE_START_DISTANCE = 1000; // Distance (meters) when obstacles *might* start moving vertically
-const VERTICAL_MOVE_CHANCE = 0.35;      // Probability (0-1) that an obstacle moves vertically after the threshold
+const VERTICAL_MOVE_CHANCE = 0.35; // Probability (0-1) that an obstacle moves vertically after the threshold
 const VERTICAL_MOVE_RANGE = PLAYER_SIZE * 1.8; // Total pixel range of vertical oscillation
-const VERTICAL_MOVE_SPEED = 0.04;       // Base speed of vertical oscillation (radians per frame)
+const VERTICAL_MOVE_SPEED = 0.04; // Base speed of vertical oscillation (radians per frame)
 
 /** Particle effect parameters. */
 const COLLECT_PARTICLES = 15; // Number of particles spawned when collecting a joist
@@ -73,32 +73,32 @@ const PARTICLE_LIFETIME = 40; // Duration (frames) particles remain active
 // --- Game State Variables ---
 // =============================================================================
 
-let player;               // The player object instance
-let obstacles = [];       // Array storing active obstacle objects
-let joists = [];          // Array storing active joist objects
+let player; // The player object instance
+let obstacles = []; // Array storing active obstacle objects
+let joists = []; // Array storing active joist objects
 let activeParticles = []; // Array storing currently visible/updating particles
-let particlePool = [];    // Array storing inactive particles for reuse (object pooling)
-let clouds = [];          // Array storing cloud background elements
-let mountains = [];       // Array storing mountain background elements
-let groundTiles = [];     // Array storing ground tile elements for scrolling effect
+let particlePool = []; // Array storing inactive particles for reuse (object pooling)
+let clouds = []; // Array storing cloud background elements
+let mountains = []; // Array storing mountain background elements
+let groundTiles = []; // Array storing ground tile elements for scrolling effect
 
-let score = 0;            // Player's current score (joists collected)
-let highScore = 0;        // Highest score achieved (loaded from localStorage)
-let distance = 0;         // Distance travelled in the current run (meters)
-let gameOver = false;     // Flag indicating if the game is over
-let gameStarted = false;  // Flag indicating if the game has started (past the initial screen)
+let score = 0; // Player's current score (joists collected)
+let highScore = 0; // Highest score achieved (loaded from localStorage)
+let distance = 0; // Distance travelled in the current run (meters)
+let gameOver = false; // Flag indicating if the game is over
+let gameStarted = false; // Flag indicating if the game has started (past the initial screen)
 let gameSpeed = INITIAL_GAME_SPEED; // Current scrolling speed of the game
-let groundY;              // Calculated Y coordinate of the ground line
-let lastJumpTime = 0;     // Timestamp of the last jump (used for potential UI effects)
-let isJumping = false;    // Flag indicating if the jump input is currently being held down
+let groundY; // Calculated Y coordinate of the ground line
+let lastJumpTime = 0; // Timestamp of the last jump (used for potential UI effects)
+let isJumping = false; // Flag indicating if the jump input is currently being held down
 
 // =============================================================================
 // --- Image Assets ---
 // =============================================================================
 
-let nucorImg;             // Image for the player
-let newMillImg;           // Image for the NewMill obstacle type
-let canamImg;             // Image for the Canam obstacle type
+let nucorImg; // Image for the player
+let newMillImg; // Image for the NewMill obstacle type
+let canamImg; // Image for the Canam obstacle type
 
 // =============================================================================
 // --- Core p5.js Functions ---
@@ -108,9 +108,9 @@ let canamImg;             // Image for the Canam obstacle type
  * Preloads necessary assets before the game starts.
  */
 function preload() {
-  nucorImg = loadImage('assets/nucor.png');
-  newMillImg = loadImage('assets/NewMill.png');
-  canamImg = loadImage('assets/Canam.png');
+  nucorImg = loadImage("assets/nucor.png");
+  newMillImg = loadImage("assets/NewMill.png");
+  canamImg = loadImage("assets/Canam.png");
   // Sound effects removed as requested
 }
 
@@ -120,27 +120,27 @@ function preload() {
  */
 function setup() {
   createCanvas(windowWidth, windowHeight); // Create canvas filling the window
-  groundY = height * GROUND_OFFSET;        // Calculate ground position based on height
+  groundY = height * GROUND_OFFSET; // Calculate ground position based on height
 
   // Initialize game state and background elements
-  resetGame();                             // Sets initial game variables (also called on restart)
-  createClouds();                          // Generate initial cloud positions
-  createMountains();                       // Generate initial mountain positions
-  createGroundTiles();                     // Generate initial ground tiles
+  resetGame(); // Sets initial game variables (also called on restart)
+  createClouds(); // Generate initial cloud positions
+  createMountains(); // Generate initial mountain positions
+  createGroundTiles(); // Generate initial ground tiles
 
   // Configure text and drawing settings
   textAlign(CENTER, CENTER);
-  textFont('Arial'); // Consider using a more thematic font if available
-  noStroke();      // Disable outlines for most shapes by default
+  textFont("Arial"); // Consider using a more thematic font if available
+  noStroke(); // Disable outlines for most shapes by default
 
   // Attempt to load the high score from browser's localStorage
   try {
-    const savedHighScore = localStorage.getItem('nucorGameHighScore');
+    const savedHighScore = localStorage.getItem("nucorGameHighScore");
     if (savedHighScore) {
       highScore = parseInt(savedHighScore);
     }
   } catch (e) {
-    console.warn('Could not load high score from localStorage:', e);
+    console.warn("Could not load high score from localStorage:", e);
   }
 }
 
@@ -158,10 +158,10 @@ function draw() {
     drawStartScreen();
   } else if (!gameOver) {
     // --- STATE: Game Running ---
-    updateGame();       // Update positions, physics, difficulty
+    updateGame(); // Update positions, physics, difficulty
     drawGameElements(); // Draw player, obstacles, joists, particles
-    checkCollisions();  // Detect collisions between player and objects
-    drawUI();           // Draw score, distance, high score overlay
+    checkCollisions(); // Detect collisions between player and objects
+    drawUI(); // Draw score, distance, high score overlay
   } else {
     // --- STATE: Game Over ---
     drawGameElements(); // Continue drawing game elements in their final state
@@ -191,11 +191,11 @@ function createClouds() {
   clouds = []; // Clear existing clouds before creating new ones (for resize/reset)
   for (let i = 0; i < cloudCount; i++) {
     clouds.push({
-      x: random(width),                      // Random horizontal start position
+      x: random(width), // Random horizontal start position
       y: random(height * 0.1, height * 0.4), // Random vertical position in upper part of sky
-      width: random(80, 200),                // Random cloud width
-      height: random(40, 80),                // Random cloud height
-      speed: random(0.1, 0.3)                // Random individual cloud scroll speed multiplier
+      width: random(80, 200), // Random cloud width
+      height: random(40, 80), // Random cloud height
+      speed: random(0.1, 0.3), // Random individual cloud scroll speed multiplier
     });
   }
 }
@@ -214,15 +214,25 @@ function drawClouds() {
 
       // Loop clouds that move off-screen to the right side
       if (cloud.x < -cloud.width) {
-        cloud.x = width + cloud.width;                      // Reset position to the right edge
-        cloud.y = random(height * 0.1, height * 0.4);       // Optionally randomize Y position on loop
+        cloud.x = width + cloud.width; // Reset position to the right edge
+        cloud.y = random(height * 0.1, height * 0.4); // Optionally randomize Y position on loop
       }
     }
 
     // Draw cloud shape using overlapping ellipses
     ellipse(cloud.x, cloud.y, cloud.width, cloud.height);
-    ellipse(cloud.x - cloud.width * 0.2, cloud.y - cloud.height * 0.1, cloud.width * 0.6, cloud.height * 0.7);
-    ellipse(cloud.x + cloud.width * 0.2, cloud.y - cloud.height * 0.1, cloud.width * 0.7, cloud.height * 0.6);
+    ellipse(
+      cloud.x - cloud.width * 0.2,
+      cloud.y - cloud.height * 0.1,
+      cloud.width * 0.6,
+      cloud.height * 0.7
+    );
+    ellipse(
+      cloud.x + cloud.width * 0.2,
+      cloud.y - cloud.height * 0.1,
+      cloud.width * 0.7,
+      cloud.height * 0.6
+    );
   }
 }
 
@@ -231,13 +241,13 @@ function drawClouds() {
  */
 function createMountains() {
   let mountainCount = floor(width / 200) + 2; // Number of mountains based on screen width, plus padding
-   mountains = []; // Clear existing mountains (for resize/reset)
+  mountains = []; // Clear existing mountains (for resize/reset)
   for (let i = 0; i < mountainCount; i++) {
     mountains.push({
       // Spread them out somewhat evenly initially, with some random offset
-      x: i * (width / (mountainCount -1)) + random(-50, 50),
+      x: i * (width / (mountainCount - 1)) + random(-50, 50),
       height: random(height * 0.2, height * 0.35), // Random mountain height
-      width: random(200, 400)                     // Random mountain width
+      width: random(200, 400), // Random mountain width
     });
   }
 }
@@ -256,7 +266,7 @@ function drawMountains() {
 
       // Loop mountains that move off-screen to the right side
       if (mountain.x < -mountain.width) {
-        mountain.x = width + random(50, 150);           // Reset position with random offset
+        mountain.x = width + random(50, 150); // Reset position with random offset
         mountain.height = random(height * 0.2, height * 0.35); // Randomize properties on loop
         mountain.width = random(200, 400);
       }
@@ -264,17 +274,23 @@ function drawMountains() {
 
     // Draw mountain shape as a triangle
     triangle(
-      mountain.x, groundY,                             // Bottom-left corner
-      mountain.x + mountain.width / 2, groundY - mountain.height, // Top point
-      mountain.x + mountain.width, groundY             // Bottom-right corner
+      mountain.x,
+      groundY, // Bottom-left corner
+      mountain.x + mountain.width / 2,
+      groundY - mountain.height, // Top point
+      mountain.x + mountain.width,
+      groundY // Bottom-right corner
     );
 
     // Draw a simple snow cap near the peak
     fill(240, 240, 250); // White-ish color for snow
     triangle(
-      mountain.x + mountain.width / 2 - mountain.width / 10, groundY - mountain.height + mountain.height / 5,
-      mountain.x + mountain.width / 2, groundY - mountain.height,
-      mountain.x + mountain.width / 2 + mountain.width / 10, groundY - mountain.height + mountain.height / 5
+      mountain.x + mountain.width / 2 - mountain.width / 10,
+      groundY - mountain.height + mountain.height / 5,
+      mountain.x + mountain.width / 2,
+      groundY - mountain.height,
+      mountain.x + mountain.width / 2 + mountain.width / 10,
+      groundY - mountain.height + mountain.height / 5
     );
     fill(COLORS.mountains); // Reset fill color for the next mountain
   }
@@ -284,15 +300,15 @@ function drawMountains() {
  * Creates the initial set of ground tile objects for the scrolling effect.
  */
 function createGroundTiles() {
-  const tileWidth = 80;                                // Width of each ground segment line
-  const tileCount = ceil(width / tileWidth) + 2;       // Number of tiles needed to cover width, plus padding
+  const tileWidth = 80; // Width of each ground segment line
+  const tileCount = ceil(width / tileWidth) + 2; // Number of tiles needed to cover width, plus padding
   groundTiles = []; // Clear existing tiles (for resize/reset)
 
   for (let i = 0; i < tileCount; i++) {
     groundTiles.push({
-      id: i,            // Simple ID, not currently used
+      id: i, // Simple ID, not currently used
       x: i * tileWidth, // Initial horizontal position
-      width: tileWidth
+      width: tileWidth,
     });
   }
 }
@@ -312,34 +328,39 @@ function drawGround() {
 
   // Iterate backwards for potential optimization if removing tiles (though not currently done here)
   for (let i = groundTiles.length - 1; i >= 0; i--) {
-      let tile = groundTiles[i];
+    let tile = groundTiles[i];
 
-      // Move tile based on game speed
-      if (gameStarted && !gameOver) {
-          tile.x -= gameSpeed;
-      }
+    // Move tile based on game speed
+    if (gameStarted && !gameOver) {
+      tile.x -= gameSpeed;
+    }
 
-      // Draw the horizontal line segment representing the top edge of the ground tile
-      line(tile.x, groundY, tile.x + tile.width, groundY);
+    // Draw the horizontal line segment representing the top edge of the ground tile
+    line(tile.x, groundY, tile.x + tile.width, groundY);
 
-      // Occasionally draw small vertical lines for texture (like grass tufts)
-      if (random() > 0.85) { // Low probability check each frame per tile
-          const grassHeight = random(2, 6);
-          line(tile.x + random(tile.width), groundY,          // Random X within the tile
-               tile.x + random(tile.width), groundY - grassHeight); // Random small height
-      }
+    // Occasionally draw small vertical lines for texture (like grass tufts)
+    if (random() > 0.85) {
+      // Low probability check each frame per tile
+      const grassHeight = random(2, 6);
+      line(
+        tile.x + random(tile.width),
+        groundY, // Random X within the tile
+        tile.x + random(tile.width),
+        groundY - grassHeight
+      ); // Random small height
+    }
 
-      // Update the rightmost position encountered so far in this frame
-      if(tile.x > maxTileX) {
-          maxTileX = tile.x;
-      }
+    // Update the rightmost position encountered so far in this frame
+    if (tile.x > maxTileX) {
+      maxTileX = tile.x;
+    }
 
-       // Loop tiles: If a tile moves fully off-screen to the left...
-      if (tile.x < -tile.width) {
-        // ...move it to the right end, just after the current rightmost tile.
-        tile.x = maxTileX + tile.width;
-        maxTileX = tile.x; // The newly moved tile is now the rightmost
-      }
+    // Loop tiles: If a tile moves fully off-screen to the left...
+    if (tile.x < -tile.width) {
+      // ...move it to the right end, just after the current rightmost tile.
+      tile.x = maxTileX + tile.width;
+      maxTileX = tile.x; // The newly moved tile is now the rightmost
+    }
   }
   noStroke(); // Reset stroke setting
 }
@@ -354,10 +375,10 @@ function drawGround() {
  */
 function updateGame() {
   // Update individual game elements
-  player.update();        // Apply physics and handle state for the player
-  handleObstacles();      // Update and remove off-screen obstacles
-  handleJoists();         // Update and remove off-screen joists
-  updateParticles();      // Update active particles and return dead ones to the pool
+  player.update(); // Apply physics and handle state for the player
+  handleObstacles(); // Update and remove off-screen obstacles
+  handleJoists(); // Update and remove off-screen joists
+  updateParticles(); // Update active particles and return dead ones to the pool
 
   // Spawn new elements based on difficulty
   spawnElements();
@@ -366,13 +387,16 @@ function updateGame() {
   // Increase distance traveled based on current speed
   distance += gameSpeed / 10;
   // Update game speed logarithmically based on distance (gets faster, but slows down rate of increase)
-  gameSpeed = INITIAL_GAME_SPEED + SPEED_LOG_BASE * Math.log10(1 + distance * SPEED_LOG_SCALE);
+  gameSpeed =
+    INITIAL_GAME_SPEED +
+    SPEED_LOG_BASE * Math.log10(1 + distance * SPEED_LOG_SCALE);
 
   // --- Variable Jump Height Check ---
   // If jump input is released (`isJumping` is false) while player is still moving up significantly,
   // apply damping to shorten the jump.
-  if (!isJumping && player.vy < -JUMP_FORCE * 0.2) { // Check velocity threshold to avoid damping small upward moves
-     player.handleJumpRelease();
+  if (!isJumping && player.vy < -JUMP_FORCE * 0.2) {
+    // Check velocity threshold to avoid damping small upward moves
+    player.handleJumpRelease();
   }
 }
 
@@ -381,10 +405,10 @@ function updateGame() {
  */
 function drawGameElements() {
   // Draw order matters for layering
-  drawJoists();      // Draw joists first (behind player)
-  player.draw();     // Draw the player
-  drawObstacles();   // Draw obstacles (can appear in front or behind depending on spawn)
-  drawParticles();   // Draw particles (usually on top)
+  drawJoists(); // Draw joists first (behind player)
+  player.draw(); // Draw the player
+  drawObstacles(); // Draw obstacles (can appear in front or behind depending on spawn)
+  drawParticles(); // Draw particles (usually on top)
 }
 
 // =============================================================================
@@ -397,15 +421,15 @@ function drawGameElements() {
 function createPlayer() {
   return {
     // Initial position and physics properties
-    x: width * 0.15,             // Start position horizontally
-    y: groundY - PLAYER_SIZE / 2,// Start position vertically, just above ground
-    vy: 0,                       // Initial vertical velocity
-    size: PLAYER_SIZE,           // Player's visual size
-    onGround: true,              // Flag if player is currently touching the ground
-    jumpAnimation: 0,            // Counter for jump rotation animation
+    x: width * 0.15, // Start position horizontally
+    y: groundY - PLAYER_SIZE / 2, // Start position vertically, just above ground
+    vy: 0, // Initial vertical velocity
+    size: PLAYER_SIZE, // Player's visual size
+    onGround: true, // Flag if player is currently touching the ground
+    jumpAnimation: 0, // Counter for jump rotation animation
 
     /** Updates player physics (gravity, velocity, position) and state. */
-    update: function() {
+    update: function () {
       // Apply gravity
       this.vy += GRAVITY;
       // Update vertical position based on velocity
@@ -414,11 +438,12 @@ function createPlayer() {
       // Check for ground collision
       if (this.y >= groundY - this.size / 2) {
         this.y = groundY - this.size / 2; // Snap position to ground
-        this.vy = 0;                      // Stop vertical movement
-        if (!this.onGround) {             // Check if player *just* landed
-             this.onGround = true;        // Set state to grounded
-             this.jumpAnimation = 0;      // Reset jump animation counter
-             // Consider adding landing particle effects here
+        this.vy = 0; // Stop vertical movement
+        if (!this.onGround) {
+          // Check if player *just* landed
+          this.onGround = true; // Set state to grounded
+          this.jumpAnimation = 0; // Reset jump animation counter
+          // Consider adding landing particle effects here
         }
       } else {
         // Player is in the air
@@ -428,7 +453,7 @@ function createPlayer() {
     },
 
     /** Draws the player character (Nucor logo) with animations and effects. */
-    draw: function() {
+    draw: function () {
       push(); // Isolate drawing transformations
 
       // Apply transformations (translation, rotation)
@@ -440,14 +465,23 @@ function createPlayer() {
 
         // Draw a dynamic shadow below the player when airborne
         // Shadow gets fainter and smaller the higher the player is
-        let shadowDistFactor = constrain(map(this.y, groundY - this.size/2, height * 0.2, 1, 0.3), 0.3, 1);
+        let shadowDistFactor = constrain(
+          map(this.y, groundY - this.size / 2, height * 0.2, 1, 0.3),
+          0.3,
+          1
+        );
         fill(0, 0, 0, 50 * shadowDistFactor); // Fade alpha
         // Shadow position is relative to ground; ellipse size scales
-        ellipse(0, groundY - this.y + 10, this.size * 0.5 * shadowDistFactor, this.size * 0.2 * shadowDistFactor);
+        ellipse(
+          0,
+          groundY - this.y + 10,
+          this.size * 0.5 * shadowDistFactor,
+          this.size * 0.2 * shadowDistFactor
+        );
       } else {
-         // Draw a standard shadow when on the ground
-         fill(0, 0, 0, 50);
-         ellipse(0, groundY - this.y + 10, this.size * 0.5, this.size * 0.2);
+        // Draw a standard shadow when on the ground
+        fill(0, 0, 0, 50);
+        ellipse(0, groundY - this.y + 10, this.size * 0.5, this.size * 0.2);
       }
 
       // Draw the main player image (Nucor logo)
@@ -458,7 +492,12 @@ function createPlayer() {
       // Add a visual glow effect when jumping (tinting a larger image)
       if (!this.onGround) {
         push(); // Isolate tint effect
-        tint(COLORS.nucorLightGreen[0], COLORS.nucorLightGreen[1], COLORS.nucorLightGreen[2], 100); // Apply light green tint
+        tint(
+          COLORS.nucorLightGreen[0],
+          COLORS.nucorLightGreen[1],
+          COLORS.nucorLightGreen[2],
+          100
+        ); // Apply light green tint
         image(nucorImg, 0, 0, imgSize * 1.1, imgSize * 1.1); // Draw slightly larger tinted image behind
         pop(); // Restore previous drawing settings (remove tint)
       }
@@ -467,26 +506,27 @@ function createPlayer() {
     },
 
     /** Initiates the player jump if on the ground. */
-    jump: function() {
+    jump: function () {
       if (this.onGround) {
-        this.vy = JUMP_FORCE;     // Apply upward force
-        this.onGround = false;    // Player is no longer on the ground
-        isJumping = true;         // Set flag indicating jump input is active
-        lastJumpTime = millis();  // Record jump time (for potential UI effects)
+        this.vy = JUMP_FORCE; // Apply upward force
+        this.onGround = false; // Player is no longer on the ground
+        isJumping = true; // Set flag indicating jump input is active
+        lastJumpTime = millis(); // Record jump time (for potential UI effects)
         // Sound effect removed
       }
     },
 
     /** Applies damping to shorten the jump when input is released early. */
-    handleJumpRelease: function() {
-        if (this.vy < 0) { // Only dampen if player is currently moving upwards
-            this.vy *= VARIABLE_JUMP_DAMPING; // Reduce upward velocity
-        }
-        isJumping = false; // Reset jump input flag
+    handleJumpRelease: function () {
+      if (this.vy < 0) {
+        // Only dampen if player is currently moving upwards
+        this.vy *= VARIABLE_JUMP_DAMPING; // Reduce upward velocity
+      }
+      isJumping = false; // Reset jump input flag
     },
 
     /** Calculates and returns the player's collision bounding box. */
-    getBounds: function() {
+    getBounds: function () {
       // Using slightly tighter bounds than visual size for better gameplay feel
       let w = this.size * 0.6; // Effective collision width
       let h = this.size * 0.9; // Effective collision height
@@ -494,9 +534,9 @@ function createPlayer() {
         left: this.x - w / 2,
         right: this.x + w / 2,
         top: this.y - h / 2,
-        bottom: this.y + h / 2
+        bottom: this.y + h / 2,
       };
-    }
+    },
   };
 }
 
@@ -517,7 +557,7 @@ function handleObstacles() {
     if (obstacles[i].isOffScreen()) {
       // Efficiently remove element: Swap with the last element, then pop.
       obstacles[i] = obstacles[obstacles.length - 1]; // Overwrite current with last
-      obstacles.pop();                                // Remove the (now duplicate) last element
+      obstacles.pop(); // Remove the (now duplicate) last element
     }
   }
 }
@@ -536,11 +576,11 @@ function drawObstacles() {
  */
 function createObstacle() {
   // Determine obstacle type (NewMill or Canam)
-  let type = random() > 0.5 ? 'NM' : 'CA';
-  let obsColor = type === 'NM' ? COLORS.obstacleNM : COLORS.obstacleCA; // Assign color (used for tinting if enabled)
+  let type = random() > 0.5 ? "NM" : "CA";
+  let obsColor = type === "NM" ? COLORS.obstacleNM : COLORS.obstacleCA; // Assign color (used for tinting if enabled)
   let size = OBSTACLE_SIZE;
-  let approxWidth = type === 'NM' ? size * 1.1 : size * 1.0; // Estimated width based on image aspect ratio
-  let obstacleImg = type === 'NM' ? newMillImg : canamImg;    // Select image based on type
+  let approxWidth = type === "NM" ? size * 1.1 : size * 1.0; // Estimated width based on image aspect ratio
+  let obstacleImg = type === "NM" ? newMillImg : canamImg; // Select image based on type
 
   // Determine position type: 0 = ground (requires jump), 1 = flying (requires ducking/passing under)
   let positionType = random() > 0.3 ? 0 : 1; // 70% ground, 30% flying
@@ -553,31 +593,34 @@ function createObstacle() {
   } else {
     // Flying obstacle: position high enough for player to pass under
     yPos = groundY - player.size * 1.1 - size / 2; // Ensure clearance based on player size
-    yPos = min(yPos, groundY - size * 1.5);       // Clamp maximum height
+    yPos = min(yPos, groundY - size * 1.5); // Clamp maximum height
   }
 
   // --- Decide if this obstacle should move vertically (based on distance/chance) ---
   let canMoveVertically = false;
   let verticalMoveOffset = 0; // Random phase offset for sine wave movement
   // Check if distance threshold is met and random chance passes
-  if (distance > VERTICAL_MOVE_START_DISTANCE && random() < VERTICAL_MOVE_CHANCE) {
-      canMoveVertically = true;
-      verticalMoveOffset = random(TWO_PI); // Assign random starting point in oscillation cycle
+  if (
+    distance > VERTICAL_MOVE_START_DISTANCE &&
+    random() < VERTICAL_MOVE_CHANCE
+  ) {
+    canMoveVertically = true;
+    verticalMoveOffset = random(TWO_PI); // Assign random starting point in oscillation cycle
   }
 
   // Return the newly created obstacle object
   return {
     // Core properties
-    x: width + size,      // Initial horizontal position (off-screen right)
-    y: yPos,              // Current vertical position
-    initialY: yPos,       // Store the original intended Y spawn position
-    type: type,           // 'NM' or 'CA'
-    image: obstacleImg,   // Reference to the p5 Image object
-    color: obsColor,      // Color (currently unused in draw if tint is off)
-    size: size,           // Base size
-    width: approxWidth,   // Estimated collision width
+    x: width + size, // Initial horizontal position (off-screen right)
+    y: yPos, // Current vertical position
+    initialY: yPos, // Store the original intended Y spawn position
+    type: type, // 'NM' or 'CA'
+    image: obstacleImg, // Reference to the p5 Image object
+    color: obsColor, // Color (currently unused in draw if tint is off)
+    size: size, // Base size
+    width: approxWidth, // Estimated collision width
     positionType: positionType, // 0 (ground) or 1 (flying)
-    rotation: 0,          // Current rotation angle for wobble effect
+    rotation: 0, // Current rotation angle for wobble effect
     wobbleOffset: random(TWO_PI), // Random phase offset for wobble animation
 
     // Properties for vertical movement feature
@@ -585,7 +628,7 @@ function createObstacle() {
     verticalMoveOffset: verticalMoveOffset, // Random phase offset for vertical oscillation
 
     /** Updates obstacle position, rotation, and vertical oscillation. */
-    update: function() {
+    update: function () {
       // Move horizontally based on game speed
       this.x -= gameSpeed;
 
@@ -593,46 +636,62 @@ function createObstacle() {
       // Wobble speed and amount increase slightly with game speed
       let wobbleSpeed = 0.05 + (gameSpeed - INITIAL_GAME_SPEED) * 0.005;
       let wobbleAmount = 0.1 + (gameSpeed - INITIAL_GAME_SPEED) * 0.01;
-      this.rotation = sin(frameCount * wobbleSpeed + this.wobbleOffset) * wobbleAmount;
+      this.rotation =
+        sin(frameCount * wobbleSpeed + this.wobbleOffset) * wobbleAmount;
 
       // --- Vertical Movement Logic ---
       if (this.canMoveVertically) {
-          // --- Case 1: Obstacle oscillates vertically ---
-          // Oscillation speed also increases slightly with game speed
-          let dynamicMoveSpeed = VERTICAL_MOVE_SPEED + (gameSpeed - INITIAL_GAME_SPEED) * 0.001;
-          // Calculate vertical offset using sine wave
-          let offsetY = sin(frameCount * dynamicMoveSpeed + this.verticalMoveOffset) * VERTICAL_MOVE_RANGE / 2;
-          // Apply offset to the initial Y position
-          this.y = this.initialY + offsetY;
+        // --- Case 1: Obstacle oscillates vertically ---
+        // Oscillation speed also increases slightly with game speed
+        let dynamicMoveSpeed =
+          VERTICAL_MOVE_SPEED + (gameSpeed - INITIAL_GAME_SPEED) * 0.001;
+        // Calculate vertical offset using sine wave
+        let offsetY =
+          (sin(frameCount * dynamicMoveSpeed + this.verticalMoveOffset) *
+            VERTICAL_MOVE_RANGE) /
+          2;
+        // Apply offset to the initial Y position
+        this.y = this.initialY + offsetY;
 
-          // Clamp Y position to prevent moving too far off-screen or below ground
-          this.y = max(this.y, this.size / 2);        // Prevent top edge going above screen top
-          this.y = min(this.y, groundY - this.size / 2); // Prevent bottom edge going below ground
-
+        // Clamp Y position to prevent moving too far off-screen or below ground
+        this.y = max(this.y, this.size / 2); // Prevent top edge going above screen top
+        this.y = min(this.y, groundY - this.size / 2); // Prevent bottom edge going below ground
       } else if (this.positionType === 1) {
-          // --- Case 2: Flying obstacle with subtle hover (and not oscillating) ---
-          let hoverSpeed = 0.1 + (gameSpeed - INITIAL_GAME_SPEED) * 0.008;
-          let hoverAmount = 0.5 + (gameSpeed - INITIAL_GAME_SPEED) * 0.1;
-          // Apply hover offset based on initial Y position
-          this.y = this.initialY + sin(frameCount * hoverSpeed + this.wobbleOffset + PI / 2) * hoverAmount; // Use different phase from wobble
+        // --- Case 2: Flying obstacle with subtle hover (and not oscillating) ---
+        let hoverSpeed = 0.1 + (gameSpeed - INITIAL_GAME_SPEED) * 0.008;
+        let hoverAmount = 0.5 + (gameSpeed - INITIAL_GAME_SPEED) * 0.1;
+        // Apply hover offset based on initial Y position
+        this.y =
+          this.initialY +
+          sin(frameCount * hoverSpeed + this.wobbleOffset + PI / 2) *
+            hoverAmount; // Use different phase from wobble
       } else {
-          // --- Case 3: Ground obstacle (not oscillating) ---
-          // Stick to the initial ground position
-          this.y = this.initialY;
+        // --- Case 3: Ground obstacle (not oscillating) ---
+        // Stick to the initial ground position
+        this.y = this.initialY;
       }
     },
 
     /** Draws the obstacle image with transformations and shadow. */
-    draw: function() {
+    draw: function () {
       push(); // Isolate transformations
       translate(this.x, this.y);
       rotate(this.rotation);
 
       // Draw shadow, dynamically adjusting alpha and size based on height from ground
-      let shadowDistFactor = constrain(map(this.y, groundY - this.size / 2, height * 0.2, 1, 0.1), 0.1, 1);
+      let shadowDistFactor = constrain(
+        map(this.y, groundY - this.size / 2, height * 0.2, 1, 0.1),
+        0.1,
+        1
+      );
       fill(0, 0, 0, 40 * shadowDistFactor); // Fade shadow alpha
       // Shadow position relative to ground; size scales with distance factor
-      ellipse(0, groundY - this.y + 10, this.width * 0.9 * shadowDistFactor, 10 * shadowDistFactor);
+      ellipse(
+        0,
+        groundY - this.y + 10,
+        this.width * 0.9 * shadowDistFactor,
+        10 * shadowDistFactor
+      );
 
       // Draw the obstacle image
       imageMode(CENTER);
@@ -644,25 +703,24 @@ function createObstacle() {
     },
 
     /** Checks if the obstacle is completely off-screen to the left. */
-    isOffScreen: function() {
+    isOffScreen: function () {
       // Use a generous boundary check
       return this.x < -this.size * 2;
     },
 
     /** Calculates and returns the obstacle's collision bounding box. */
-    getBounds: function() {
-       // Use current 'this.y' which includes any vertical movement
-       // Use slightly tighter bounds than visual size for better gameplay feel
+    getBounds: function () {
+      // Use current 'this.y' which includes any vertical movement
+      // Use slightly tighter bounds than visual size for better gameplay feel
       return {
-        left: this.x - this.width / 2 * 0.9,
-        right: this.x + this.width / 2 * 0.9,
-        top: this.y - this.size / 2 * 0.9,
-        bottom: this.y + this.size / 2 * 0.9
+        left: this.x - (this.width / 2) * 0.9,
+        right: this.x + (this.width / 2) * 0.9,
+        top: this.y - (this.size / 2) * 0.9,
+        bottom: this.y + (this.size / 2) * 0.9,
       };
-    }
+    },
   };
 }
-
 
 // =============================================================================
 // --- Joist Handling ---
@@ -680,8 +738,8 @@ function handleJoists() {
     // Check if joist is off-screen to the left
     if (joists[i].isOffScreen()) {
       // Efficiently remove element: Swap with the last element, then pop.
-       joists[i] = joists[joists.length - 1]; // Overwrite current with last
-      joists.pop();                         // Remove the (now duplicate) last element
+      joists[i] = joists[joists.length - 1]; // Overwrite current with last
+      joists.pop(); // Remove the (now duplicate) last element
     }
   }
 }
@@ -712,18 +770,18 @@ function createJoist(forceGolden = false) {
 
   return {
     // Core properties
-    x: width + w,        // Initial horizontal position (off-screen right)
-    y: spawnY,           // Current vertical position (includes hover)
-    baseY: spawnY,       // Store the initial spawn Y for hover calculation
+    x: width + w, // Initial horizontal position (off-screen right)
+    y: spawnY, // Current vertical position (includes hover)
+    baseY: spawnY, // Store the initial spawn Y for hover calculation
     width: w,
     height: h,
-    isGolden: isGolden,  // Flag indicating if it's a high-value golden joist
-    rotation: 0,         // Current rotation angle
-    hover: 0,            // Current vertical offset from baseY due to hover animation
+    isGolden: isGolden, // Flag indicating if it's a high-value golden joist
+    rotation: 0, // Current rotation angle
+    hover: 0, // Current vertical offset from baseY due to hover animation
     animOffset: random(TWO_PI), // Random phase offset for hover/rotation animations
 
     /** Updates joist position and animation state. */
-    update: function() {
+    update: function () {
       // Move horizontally based on game speed
       this.x -= gameSpeed;
 
@@ -742,10 +800,10 @@ function createJoist(forceGolden = false) {
     },
 
     /** Draws the joist with appropriate color and details. */
-    draw: function() {
+    draw: function () {
       push(); // Isolate transformations
       translate(this.x, this.y); // Move to joist's position (includes hover)
-      rotate(this.rotation);     // Apply rotation
+      rotate(this.rotation); // Apply rotation
 
       // --- Draw Shadow ---
       fill(0, 0, 0, 30); // Semi-transparent black
@@ -798,23 +856,22 @@ function createJoist(forceGolden = false) {
     },
 
     /** Checks if the joist is completely off-screen to the left. */
-    isOffScreen: function() {
+    isOffScreen: function () {
       return this.x < -this.width;
     },
 
     /** Calculates and returns the joist's collision bounding box. */
-    getBounds: function() {
+    getBounds: function () {
       // Uses the current 'this.y' which includes hover animation
       return {
         left: this.x - this.width / 2,
         right: this.x + this.width / 2,
         top: this.y - this.height / 2,
-        bottom: this.y + this.height / 2
+        bottom: this.y + this.height / 2,
       };
-    }
+    },
   };
 }
-
 
 // =============================================================================
 // --- Particle System ---
@@ -839,17 +896,17 @@ function createCollectParticles(x, y, color) {
     }
 
     // Initialize or reset particle properties
-    p.x = x;                      // Set position
+    p.x = x; // Set position
     p.y = y;
-    p.vx = random(-3, 3);         // Random initial horizontal velocity
-    p.vy = random(-5, 0);         // Random initial upward velocity
-    p.size = random(3, 8);        // Random size
-    p.color = [...color];         // Copy base color array
-    p.color[3] = 255;             // Set initial alpha to fully opaque
-    p.life = PARTICLE_LIFETIME;   // Set lifetime duration
-    p.active = true;              // Mark as active
+    p.vx = random(-3, 3); // Random initial horizontal velocity
+    p.vy = random(-5, 0); // Random initial upward velocity
+    p.size = random(3, 8); // Random size
+    p.color = [...color]; // Copy base color array
+    p.color[3] = 255; // Set initial alpha to fully opaque
+    p.life = PARTICLE_LIFETIME; // Set lifetime duration
+    p.active = true; // Mark as active
 
-    activeParticles.push(p);      // Add to the list of particles to update and draw
+    activeParticles.push(p); // Add to the list of particles to update and draw
   }
 }
 
@@ -873,12 +930,12 @@ function updateParticles() {
 
     // Check if particle lifetime has expired
     if (p.life <= 0) {
-      p.active = false;        // Mark as inactive
-      particlePool.push(p);    // Return the particle object to the pool for reuse
+      p.active = false; // Mark as inactive
+      particlePool.push(p); // Return the particle object to the pool for reuse
 
       // Remove from active list using swap-pop
       activeParticles[i] = activeParticles[activeParticles.length - 1]; // Overwrite with last element
-      activeParticles.pop();                                        // Remove last element
+      activeParticles.pop(); // Remove last element
     }
   }
 }
@@ -891,13 +948,12 @@ function drawParticles() {
   for (let p of activeParticles) {
     // Minor optimization: Only draw if particle is somewhat visible
     if (p.color[3] > 5) {
-        // Set fill color using RGBA values from particle's color array
-        fill(p.color[0], p.color[1], p.color[2], p.color[3]);
-        ellipse(p.x, p.y, p.size); // Draw particle as a small ellipse
+      // Set fill color using RGBA values from particle's color array
+      fill(p.color[0], p.color[1], p.color[2], p.color[3]);
+      ellipse(p.x, p.y, p.size); // Draw particle as a small ellipse
     }
   }
 }
-
 
 // =============================================================================
 // --- Spawning & Collision ---
@@ -907,32 +963,39 @@ function drawParticles() {
  * Determines when to spawn new obstacles and joists based on logarithmic difficulty.
  */
 function spawnElements() {
-    // Calculate the reduction factor for spawn rates based on distance (logarithmic)
-    // Higher distance = larger reduction = shorter spawn interval
-    let rateReduction = SPAWN_RATE_LOG_BASE * Math.log10(1 + distance * SPAWN_RATE_LOG_SCALE);
+  // Calculate the reduction factor for spawn rates based on distance (logarithmic)
+  // Higher distance = larger reduction = shorter spawn interval
+  let rateReduction =
+    SPAWN_RATE_LOG_BASE * Math.log10(1 + distance * SPAWN_RATE_LOG_SCALE);
 
-    // --- Obstacle Spawning ---
-    // Calculate current spawn interval, ensuring it doesn't go below the minimum
-    let obstacleSpawnRate = floor(max(MIN_OBSTACLE_SPAWN_RATE, BASE_OBSTACLE_SPAWN_RATE - rateReduction));
-    // Spawn an obstacle if frameCount is a multiple of the calculated rate
-    if (frameCount % obstacleSpawnRate === 0) {
-        obstacles.push(createObstacle());
-    }
+  // --- Obstacle Spawning ---
+  // Calculate current spawn interval, ensuring it doesn't go below the minimum
+  let obstacleSpawnRate = floor(
+    max(MIN_OBSTACLE_SPAWN_RATE, BASE_OBSTACLE_SPAWN_RATE - rateReduction)
+  );
+  // Spawn an obstacle if frameCount is a multiple of the calculated rate
+  if (frameCount % obstacleSpawnRate === 0) {
+    obstacles.push(createObstacle());
+  }
 
-    // --- Joist Spawning ---
-    // Calculate current spawn interval for joists
-    let joistSpawnRate = floor(max(MIN_JOIST_SPAWN_RATE, BASE_JOIST_SPAWN_RATE - rateReduction));
-    // Spawn a regular joist based on rate and a random chance
-    if (frameCount % joistSpawnRate === 0 && random() > 0.3) { // Add randomness to joist spawns
-        joists.push(createJoist());
-    }
+  // --- Joist Spawning ---
+  // Calculate current spawn interval for joists
+  let joistSpawnRate = floor(
+    max(MIN_JOIST_SPAWN_RATE, BASE_JOIST_SPAWN_RATE - rateReduction)
+  );
+  // Spawn a regular joist based on rate and a random chance
+  if (frameCount % joistSpawnRate === 0 && random() > 0.3) {
+    // Add randomness to joist spawns
+    joists.push(createJoist());
+  }
 
-    // --- Golden Joist Spawning ---
-    // Spawn golden joists much less frequently, tied to the regular joist rate
-    let goldenJoistSpawnRate = joistSpawnRate * 5; // e.g., 5 times less frequent than regular joists
-    if (frameCount % goldenJoistSpawnRate === 0 && random() > 0.6) { // Additional random chance
-        joists.push(createJoist(true)); // Force creation of a golden joist
-    }
+  // --- Golden Joist Spawning ---
+  // Spawn golden joists much less frequently, tied to the regular joist rate
+  let goldenJoistSpawnRate = joistSpawnRate * 5; // e.g., 5 times less frequent than regular joists
+  if (frameCount % goldenJoistSpawnRate === 0 && random() > 0.6) {
+    // Additional random chance
+    joists.push(createJoist(true)); // Force creation of a golden joist
+  }
 }
 
 /**
@@ -944,7 +1007,8 @@ function checkCollisions() {
 
   // --- Player vs Obstacles ---
   // Iterate through all active obstacles
-  for (let obs of obstacles) { // No need for backward loop if not removing here
+  for (let obs of obstacles) {
+    // No need for backward loop if not removing here
     let obsBounds = obs.getBounds(); // Get obstacle's collision box
     // Check for overlap between player and obstacle bounds
     if (rectOverlap(playerBounds, obsBounds)) {
@@ -953,18 +1017,22 @@ function checkCollisions() {
       // --- Create Collision Particle Effect ---
       // Spawn explosion particles using the pooling system
       for (let i = 0; i < 30; i++) {
-          let p;
-          if(particlePool.length > 0) { p = particlePool.pop(); } else { p = {}; } // Get from pool or create new
-          // Initialize particle properties for explosion effect
-          p.x = player.x;
-          p.y = player.y;
-          p.vx = random(-5, 5); // Random velocity outwards
-          p.vy = random(-8, 2);
-          p.size = random(5, 15);
-          p.color = [...COLORS.nucorGreen, 255]; // Use player color
-          p.life = PARTICLE_LIFETIME * 1.5;     // Longer lifetime for explosion
-          p.active = true;
-          activeParticles.push(p);             // Add to active particles
+        let p;
+        if (particlePool.length > 0) {
+          p = particlePool.pop();
+        } else {
+          p = {};
+        } // Get from pool or create new
+        // Initialize particle properties for explosion effect
+        p.x = player.x;
+        p.y = player.y;
+        p.vx = random(-5, 5); // Random velocity outwards
+        p.vy = random(-8, 2);
+        p.size = random(5, 15);
+        p.color = [...COLORS.nucorGreen, 255]; // Use player color
+        p.life = PARTICLE_LIFETIME * 1.5; // Longer lifetime for explosion
+        p.active = true;
+        activeParticles.push(p); // Add to active particles
       }
 
       // --- High Score Check & Save ---
@@ -972,9 +1040,9 @@ function checkCollisions() {
         highScore = score; // Update high score in memory
         try {
           // Attempt to save the new high score to localStorage
-          localStorage.setItem('nucorGameHighScore', highScore);
+          localStorage.setItem("nucorGameHighScore", highScore);
         } catch (e) {
-          console.warn('Could not save high score to localStorage:', e);
+          console.warn("Could not save high score to localStorage:", e);
         }
       }
 
@@ -1002,7 +1070,7 @@ function checkCollisions() {
       // --- Remove Collected Joist ---
       // Use swap-pop for efficient removal
       joists[i] = joists[joists.length - 1]; // Overwrite collected joist with the last one
-      joists.pop();                         // Remove the last element
+      joists.pop(); // Remove the last element
 
       // Do not return early; player might collect multiple joists in one frame
     }
@@ -1016,10 +1084,12 @@ function checkCollisions() {
  * @returns {boolean} True if the rectangles overlap, false otherwise.
  */
 function rectOverlap(rect1, rect2) {
-  return rect1.left < rect2.right &&
-         rect1.right > rect2.left &&
-         rect1.top < rect2.bottom &&
-         rect1.bottom > rect2.top;
+  return (
+    rect1.left < rect2.right &&
+    rect1.right > rect2.left &&
+    rect1.top < rect2.bottom &&
+    rect1.bottom > rect2.top
+  );
 }
 
 // =============================================================================
@@ -1032,10 +1102,10 @@ function rectOverlap(rect1, rect2) {
 function drawUI() {
   // --- Draw Background Panel ---
   fill(COLORS.uiBackground); // Semi-transparent black background
-  rect(0, 0, width, 50);     // Panel at the top of the screen
+  rect(0, 0, width, 50); // Panel at the top of the screen
 
   // --- Draw Text Elements ---
-  fill(COLORS.uiText);       // White text color
+  fill(COLORS.uiText); // White text color
   textSize(24);
 
   // Score (Left-aligned)
@@ -1135,17 +1205,17 @@ function drawGameOverScreen() {
  * Central handler for jump initiation inputs (press/touch start).
  */
 function handleInputStart() {
-    if (!gameStarted) {
-        // --- First Input: Start the game ---
-        gameStarted = true; // Set flag
-        resetGame();        // Initialize game state for a new run
-    } else if (gameOver) {
-        // --- Input on Game Over Screen: Restart ---
-        resetGame();        // Reset game state for a new run
-    } else {
-        // --- Input During Gameplay: Jump ---
-        player.jump();      // Trigger player jump
-    }
+  if (!gameStarted) {
+    // --- First Input: Start the game ---
+    gameStarted = true; // Set flag TO START THE GAME on the next frame
+    // DO NOT call resetGame() here. Game variables were already set in setup().
+  } else if (gameOver) {
+    // --- Input on Game Over Screen: Restart ---
+    resetGame(); // Reset game state for a new run
+  } else {
+    // --- Input During Gameplay: Jump ---
+    player.jump(); // Trigger player jump
+  }
 }
 
 /**
@@ -1153,23 +1223,25 @@ function handleInputStart() {
  * Used for variable jump height.
  */
 function handleInputEnd() {
-    // If game is running and not over, handle jump release for variable height
-    if (!gameOver && gameStarted) {
-        player.handleJumpRelease();
-    }
-     // Always ensure isJumping flag is reset on release, regardless of game state
-     isJumping = false;
+  // If game is running and not over, handle jump release for variable height
+  if (!gameOver && gameStarted) {
+    player.handleJumpRelease();
+  }
+  // Always ensure isJumping flag is reset on release, regardless of game state
+  isJumping = false;
 }
 
 // --- Keyboard Input ---
 function keyPressed() {
-  if (keyCode === 32) { // 32 is the keyCode for SPACEBAR
+  if (keyCode === 32) {
+    // 32 is the keyCode for SPACEBAR
     handleInputStart();
   }
 }
 
 function keyReleased() {
-  if (keyCode === 32) { // SPACEBAR
+  if (keyCode === 32) {
+    // SPACEBAR
     handleInputEnd();
   }
 }
@@ -1177,7 +1249,7 @@ function keyReleased() {
 // --- Mouse Input ---
 function mousePressed() {
   handleInputStart();
-   // Returning false can help prevent default browser actions (like text selection)
+  // Returning false can help prevent default browser actions (like text selection)
   return false;
 }
 
@@ -1219,16 +1291,15 @@ function resetGame() {
   // Recreate the player object
   player = createPlayer();
 
-  // Reset game state flags
+  // Reset game state flags (ONLY game over, not gameStarted)
   gameOver = false;
-  gameStarted = true; // Set to true immediately as reset is triggered by input to start/restart
+  // gameStarted = true; // <<< REMOVE THIS LINE >>>
   isJumping = false;  // Ensure jump state is reset
 
   // Reset p5's frameCount for consistent spawning at the beginning of a run
   frameCount = 0;
 
-  // Optional: Reset background elements if they drift significantly over plays.
-  // Usually not necessary unless there are precision issues in looping.
+  // Optional: Reset background elements if needed
   // createClouds();
   // createMountains();
   // createGroundTiles();
@@ -1239,7 +1310,7 @@ function resetGame() {
  */
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight); // Adjust canvas dimensions
-  groundY = height * GROUND_OFFSET;        // Recalculate ground position
+  groundY = height * GROUND_OFFSET; // Recalculate ground position
 
   // Recreate background elements to fit the new screen size properly
   createClouds();
@@ -1251,9 +1322,9 @@ function windowResized() {
     player.x = width * 0.15; // Re-center horizontally (relative position)
     // If resizing causes player to be below the new ground line, snap them back up
     if (player.y + player.size / 2 > groundY) {
-        player.y = groundY - player.size / 2;
-        player.vy = 0;
-        player.onGround = true;
+      player.y = groundY - player.size / 2;
+      player.vy = 0;
+      player.onGround = true;
     }
   }
 }
